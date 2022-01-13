@@ -21,7 +21,7 @@ public class Scoreboard {
         this.manager = manager;
     }
 
-    public void updateScoreboard(Player p) { // скорборд, когда нет отсчёта до начала раунда (игрок один на сервере или в хабе)
+    public static void updateScoreboard(Player p) { // обычный хабовский скорборд
         try {
             PreparedStatement statement = Main.getInstance().getConnection().prepareStatement(
                     "SELECT Money, Win, Game FROM users WHERE UUID = ?"
@@ -42,31 +42,19 @@ public class Scoreboard {
             objective.setDisplayName(ChatColor.BOLD + "§eTNT TAG");
 
             Score score = objective.getScore("§1");
-            score.setScore(9);
+            score.setScore(11);
 
-            Score score1 = objective.getScore(" Игроков: " + ChatColor.GREEN  + manager.getPlayers().size() + "/24  ");
-            score1.setScore(8);
+            Score score1 = objective.getScore(" Баланс: §e" + coins + "⭐");
+            score1.setScore(10);
 
-            Score score2 = objective.getScore("§2");
-            score2.setScore(7);
+            Score score2 = objective.getScore(" Побед: §e" + wins);
+            score2.setScore(9);
 
-            Score score3 = objective.getScore(" Карта: §e" + "Название  ");
-            score3.setScore(6);
+            Score score3 = objective.getScore(" Игр: §e" + games);
+            score3.setScore(8);
 
-            Score score4 = objective.getScore("§3");
-            score4.setScore(5);
-
-            Score score5 = objective.getScore(" Баланс: §e" + coins + "⭐");
-            score5.setScore(4);
-
-            Score score6 = objective.getScore(" Побед: §e" + wins);
-            score6.setScore(3);
-
-            Score score7 = objective.getScore(" Игр: §e" + games);
-            score7.setScore(2);
-
-            Score score8 = objective.getScore("§4");
-            score8.setScore(1);
+            Score score4 = objective.getScore("§4");
+            score4.setScore(7);
 
             p.setScoreboard(board);
         } catch (Exception e) {

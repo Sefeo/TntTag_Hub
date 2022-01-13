@@ -17,13 +17,13 @@ public class BungeeListener implements PluginMessageListener {
     private Manager manager;
     private ServerJoinItem joinItem;
 
-    private String ip = "localhost"; // если у серверов разные айпи, то Ф тебе, иди переписывай код
-    private int port = 25564; // тут надо указать максимальный порт всех серверов +1, например у меня макс. 25563, указываю 25564.
-
     public BungeeListener(Manager manager) {
         this.manager = manager;
         this.joinItem = manager.getJoinItem();
     }
+
+    private String ip = "localhost"; // если у серверов разные айпи, то press F, надо переписывать
+    private int port = 25564; // тут надо указать максимальный порт всех серверов +1, у меня макс. 25563, указываю 25564.
 
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
@@ -36,19 +36,19 @@ public class BungeeListener implements PluginMessageListener {
 
             if (command.equals("GetServers")) {
                 String servers = in.readUTF(); // все сервера идут одним стрингом (в том числе которые просто прописаны в бандже и сейчас оффлайн)
-                joinItem.serverName = servers.split(", "); // разделяем их через запятую и записываем в массив
+                joinItem.serverName = servers.split(", "); // разделяем их через запятую
 
-                for (int i = 0; i < joinItem.serverName.length; i++) { // проходимся по каждому серверу
+                for (int i = 0; i < joinItem.serverName.length; i++) { // проходимся по каждому
                     if (joinItem.serverName[i].equals("HUB")) continue; // кроме хаба
-                    if(joinItem.serverName[i].length() == 0) continue; // и кроме пустых (если такие будут)
+                    if(joinItem.serverName[i].length() == 0) continue; // и кроме пустых
 
                     int currentPort = port - i; // порт сервера, инфу про который мы собираемся обновлять
                     try {
                         Socket s = new Socket();
                         s.connect(new InetSocketAddress(ip, currentPort), 10);
 
-                        getCount(player, joinItem.serverName[i]);
-                        joinItem.isOnline.put(joinItem.serverName[i], true); // записываем кол-во игроков и онлайн
+                        getCount(player, joinItem.serverName[i]); // записываем кол-во игроков и онлайн
+                        joinItem.isOnline.put(joinItem.serverName[i], true);
 
                         String motd = getMOTD(ip, currentPort);
                         if (motd.equals("\u0012RoundStartedTrue")) joinItem.roundStarted.put(joinItem.serverName[i], true);
@@ -60,17 +60,19 @@ public class BungeeListener implements PluginMessageListener {
                     }
                 }
             }
+
             if (command.equals("PlayerCount")) {
                 String server = in.readUTF();
                 int players = in.readInt();
                 joinItem.playersCount.put(server, players); // просто записываем кол-во игроков в переменную
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    void updateServersInfo() { // запрос к бандже на получение списка серверов, в его обработке выше идёт сохранение данных о всех серверах
+    void updateServersInfo() { // запрос к бандже на получение списка серверов и запись их инфы в переменные
         ByteArrayOutputStream b = new ByteArrayOutputStream();
         DataOutputStream out = new DataOutputStream(b);
         try {
@@ -81,7 +83,7 @@ public class BungeeListener implements PluginMessageListener {
         Bukkit.getServer().sendPluginMessage(manager.getPlugin(), "BungeeCord", b.toByteArray());
     }
 
-    void connectToServer(Player p, String server) { // подключение игрока к другому серверу
+    void connectToServer(Player p, String server) {
         ByteArrayDataOutput in = ByteStreams.newDataOutput();
         in.writeUTF("Connect");
         in.writeUTF(server);
@@ -98,7 +100,7 @@ public class BungeeListener implements PluginMessageListener {
 
     }
 
-    private String getMOTD(String ip, int port) { // получает мотд сервера, принцип работы сложный и нет смысла его описывать
+    private String getMOTD(String ip, int port) { // получает мотд сервера
         String motd;
         try {
             Socket socket = new Socket();

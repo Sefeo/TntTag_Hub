@@ -18,33 +18,33 @@ public class SubListeners implements Listener {
     }
 
     @EventHandler
-    public void onItemDrop(PlayerDropItemEvent e) {
+    private void onItemDrop(PlayerDropItemEvent e) {
         e.setCancelled(true);
     }
 
     @EventHandler
-    public void onDamageTaken(EntityDamageEvent e) {
+    private void onDamageTaken(EntityDamageEvent e) {
         if (e.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_ATTACK)) e.setDamage(0F);
         else e.setCancelled(true);
     }
 
     @EventHandler
-    public void onMobSpawn(CreatureSpawnEvent e) {
+    private void onMobSpawn(CreatureSpawnEvent e) {
         e.setCancelled(true);
     }
 
     @EventHandler
-    public void onBlockPlace(BlockPlaceEvent e) {
+    private void onBlockPlace(BlockPlaceEvent e) {
         e.setCancelled(true);
     }
 
     @EventHandler
-    public void onBlockBreak(BlockBreakEvent e) {
+    private void onBlockBreak(BlockBreakEvent e) {
         e.setCancelled(true);
     }
 
     @EventHandler
-    public void onItemMend(PlayerItemMendEvent e) { // я не уверен тот ли это ивент, что мне нужен, но лишним не будет
+    private void onItemMend(PlayerItemMendEvent e) { // я не уверен тот ли это ивент, что мне нужен, но лишним не будет
         e.setCancelled(true);
     }
 }

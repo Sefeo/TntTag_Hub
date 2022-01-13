@@ -2,6 +2,7 @@ package TntTag_Hub.manager;
 
 import TntTag_Hub.Main;
 import TntTag_Hub.data.CheckData;
+import TntTag_Hub.data.Config;
 import TntTag_Hub.data.UpdateData;
 import TntTag_Hub.items.ServerJoinItem;
 import TntTag_Hub.items.ShopItem;
@@ -24,11 +25,10 @@ public class Manager {
     private UpdateData updateData;
     private Buffs buffs;
     private Inventories inv;
-    private Handler handler;
-    private Scoreboard scoreboard;
     private BungeeListener bungeeListener;
     private ServerJoinItem joinItem;
     private ShopItem shopItem;
+    private Config config;
 
 
     public Manager(Main main) {
@@ -37,19 +37,14 @@ public class Manager {
         this.updateData = new UpdateData(this);
         this.buffs = new Buffs(this);
         this.inv = new Inventories(this);
-        this.handler = new Handler(this);
-        this.scoreboard = new Scoreboard(this);
         this.bungeeListener = new BungeeListener(this);
         this.joinItem = new ServerJoinItem(this);
         this.shopItem = new ShopItem(this);
+        this.config = new Config(this);
     }
 
     public Collection<? extends Player> getPlayers() { // геттер всех игроков онлайн
         return plugin.getServer().getOnlinePlayers();
-    }
-
-    public Server getServer() { // геттер сервера
-        return plugin.getServer();
     }
 
     public CheckData getCheckData() {
@@ -68,14 +63,6 @@ public class Manager {
         return inv;
     }
 
-    public Handler getHandler() {
-        return handler;
-    }
-
-    public Scoreboard getScoreboard() {
-        return scoreboard;
-    }
-
     public BungeeListener getBungeeListener() {
         return bungeeListener;
     }
@@ -88,15 +75,11 @@ public class Manager {
         return shopItem;
     }
 
-    public FileConfiguration getConfig(){
-        return plugin.getConfig();
-    }
-
-    public void saveConfig(){
-        plugin.saveConfig();
-    }
+    public Config getConfig() { return config; }
 
     public Main getPlugin(){
         return plugin;
     }
+
+    public Server getServer() { return plugin.getServer(); }
 }

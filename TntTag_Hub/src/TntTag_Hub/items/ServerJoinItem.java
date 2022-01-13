@@ -1,6 +1,5 @@
 package TntTag_Hub.items;
 
-import TntTag_Hub.listener.BungeeListener;
 import TntTag_Hub.manager.Manager;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -15,21 +14,19 @@ import java.util.List;
 
 public class ServerJoinItem {
 
-    Manager manager;
-    private BungeeListener bungeeListener;
+    private Manager manager;
 
     public ServerJoinItem(Manager manager) {
         this.manager = manager;
-        this.bungeeListener = manager.getBungeeListener();
     }
 
-    // эти переменные должны быть именно тут, я хотел засунуть их в BungeeListener, но тогда они не успевают обрабатываться и флудят ексепшинами
+    // эти переменные должны быть именно тут, хотел засунуть их в BungeeListener, но тогда они не успевают обрабатываться и флудят ексепшинами
     public String[] serverName;
     public HashMap<String, Boolean> roundStarted = new HashMap<>(); // все сервера и то, идёт ли на них раунд
     public HashMap<String, Integer> playersCount = new HashMap<>(); // все сервера и их кол-во игроков
     public HashMap<String, Boolean> isOnline = new HashMap<>(); // все сервера и их статус (онлайн/офлайн)
 
-    public void createJoinItem(Player p, Inventory inv) { // создание иконов серверов в инвентаре
+    public void createJoinItem(Player p, Inventory inv) { // создание иконок серверов в инвентаре
         int count = 0; // слот сервера в инвентаре
 
         for (String server : serverName) { // проходимся по каждому серверу и добавляем его
@@ -45,15 +42,15 @@ public class ServerJoinItem {
                 return;
             }
 
-            ItemStack serveritem = new ItemStack(Material.TNT);
-            ItemMeta servermeta = serveritem.getItemMeta();
-            servermeta.setDisplayName(server);
+            ItemStack serverItem = new ItemStack(Material.TNT);
+            ItemMeta serverMeta = serverItem.getItemMeta();
+            serverMeta.setDisplayName(server);
             List<String> lore = new ArrayList<>();
             lore.add(ChatColor.RESET + "Игроков: " + playersCount.get(server) + "/24");
-            servermeta.setLore(lore);
-            serveritem.setItemMeta(servermeta);
+            serverMeta.setLore(lore);
+            serverItem.setItemMeta(serverMeta);
 
-            inv.setItem(count, serveritem);
+            inv.setItem(count, serverItem);
             count++;
         }
     }

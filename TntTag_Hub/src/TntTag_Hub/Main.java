@@ -14,11 +14,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.Statement;
 
 public class Main extends JavaPlugin {
 
-    // ЭТО ОБНОВЛЁННЫЙ ХАБ, СТАРАЯ ВЕРСИЯ - TntTagHub
-
+    private Manager manager;
     private static Main instance;
     private Connection connection;
 
@@ -26,11 +26,15 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        System.out.println("[TntTag_Hub] TntTag_Hub loaded! Dev: Sefeo");
-        Manager manager = new Manager(this);
+        manager = new Manager(this);
+
+        saveDefaultConfig();
+        manager.getConfig().loadConfig();
 
         setInstance(this);
         listConnection();
+
+        System.out.println("[TntTag_Hub] Loaded!");
 
         Bukkit.getPluginManager().registerEvents(new Handler(manager), this);
         Bukkit.getPluginManager().registerEvents(new SubListeners(manager), this);
@@ -38,20 +42,19 @@ public class Main extends JavaPlugin {
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new BungeeListener(manager));
 
-        World world = this.getServer().getWorlds().get(0); // создание нпс
-        Location loc = new Location(world, 214, 71, 67);
-        npc = (ArmorStand) world.spawnEntity(loc, EntityType.ARMOR_STAND);
+        Location loc = manager.getConfig().npcLoc;
+        npc = (ArmorStand) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
         npc.setHelmet(new ItemStack(Material.TNT));
         npc.setCustomName(ChatColor.RED + "TNT TAG");
         npc.setCustomNameVisible(true);
 
         int removedEntities = 0;
-        for(Entity ent : world.getEntities()) {
+        for(Entity ent : loc.getWorld().getEntities()) {
             if(ent instanceof Player || ent instanceof ArmorStand) continue; // удаляем всех энтити кроме игроков и арморстендов
             ent.remove();
             removedEntities++;
         }
-        if(removedEntities > 0) System.out.println("Entities deleted: " + removedEntities);
+        if(removedEntities > 0) System.out.println("[TntTag_Hub] Entities deleted: " + removedEntities);
     }
 
     public void onDisable() {
@@ -73,10 +76,25 @@ public class Main extends JavaPlugin {
     private void listConnection() {
         try {
             Class.forName("com.mysql.jdbc.Driver");
-            String url1 = "jdbc:mysql://127.0.0.1:3306/server?user=root&password=";
-            this.connection = DriverManager.getConnection(url1);
+            String connectUrl = "jdbc:mysql://" + manager.getConfig().dbUrl + "/" + manager.getConfig().dbMainTable;
+            this.connection = DriverManager.getConnection(connectUrl, manager.getConfig().dbUser, manager.getConfig().dbPassword);
+
+            String createTable = "CREATE TABLE IF NOT EXISTS " + manager.getConfig().dbMainTable + "." + manager.getConfig().dbTable + " (" // подключаемся к бд и создаем таблицу
+                    + "ID INT(11) NOT NULL primary key AUTO_INCREMENT,"
+                    + "UUID VARCHAR(36) NOT NULL,"
+                    + "Nick VARCHAR(26) NOT NULL,"
+                    + "Money INT(11) NOT NULL,"
+                    + "Win INT(11) NOT NULL,"
+                    + "Game INT(11) NOT NULL,"
+                    + "Speed INT(11) NOT NULL,"
+                    + "Slow INT(11) NOT NULL,"
+                    + "Invul INT(11) NOT NULL)";
+            Statement statement = this.connection.createStatement();
+            statement.execute(createTable);
         } catch (Exception e) {
             e.printStackTrace();
+            System.out.println("[TntTag_Hub] Couldn`t connect to the database, disabling plugin...");
+            onDisable();
         }
     }
 }

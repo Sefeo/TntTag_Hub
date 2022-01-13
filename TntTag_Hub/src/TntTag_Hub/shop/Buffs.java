@@ -1,7 +1,9 @@
 package TntTag_Hub.shop;
 
 import TntTag_Hub.Main;
+import TntTag_Hub.data.UpdateData;
 import TntTag_Hub.manager.Manager;
+import TntTag_Hub.scoreboard.Scoreboard;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -12,6 +14,7 @@ import java.sql.ResultSet;
 public class Buffs {
 
     private Manager manager;
+    private UpdateData updateData;
 
     private int price;
     private int speedValue;
@@ -20,6 +23,7 @@ public class Buffs {
 
     public Buffs(Manager manager) {
         this.manager = manager;
+        this.updateData = manager.getUpdateData();
     }
 
     public void buyBuff(Player p, Material material) {
@@ -30,48 +34,50 @@ public class Buffs {
         int money = getMoney(p);
         int cost;
 
-        switch (String.valueOf(material))  // Свитчим тип нажатого предмета и снимаем деньги, даем лвл бафа
+        switch (String.valueOf(material))
         {
             case "FEATHER": {
                 if (speedValue == 5) return;
+
                 cost = getItemPrice(p, "Speed");
                 if (money < cost) {
-                    p.sendMessage("Недостаточно монет!");
-                    manager.getInv().createShopInv(p);
+                    p.sendMessage(ChatColor.YELLOW + "Недостаточно монет!");
                     return;
                 }
-                manager.getUpdateData().updatePlayerMoney(p, cost, false);
-                manager.getUpdateData().addBuffCount(p, "Speed");
+                updateData.updatePlayerMoney(p, cost, false);
+                updateData.addBuffCount(p, "Speed");
                 p.sendMessage(ChatColor.GREEN + "Покупка успешна!");
                 break;
             }
             case "DIAMOND_SWORD": {
                 if (slowValue == 5) return;
+
                 cost = getItemPrice(p, "Slow");
                 if (money < cost) {
-                    p.sendMessage("Недостаточно монет!");
-                    manager.getInv().createShopInv(p);
+                    p.sendMessage(ChatColor.YELLOW + "Недостаточно монет!");
                     return;
                 }
-                manager.getUpdateData().updatePlayerMoney(p, cost, false);
-                manager.getUpdateData().addBuffCount(p, "Slow");
+                updateData.updatePlayerMoney(p, cost, false);
+                updateData.addBuffCount(p, "Slow");
                 p.sendMessage(ChatColor.GREEN + "Покупка успешна!");
                 break;
             }
             case "GOLDEN_APPLE": {
                 if (invulValue == 5) return;
+
                 cost = getItemPrice(p, "Invul");
                 if (money < cost) {
-                    p.sendMessage("Недостаточно монет!");
-                    manager.getInv().createShopInv(p);
+                    p.sendMessage(ChatColor.YELLOW + "Недостаточно монет!");
                     return;
                 }
-                manager.getUpdateData().updatePlayerMoney(p, cost, false);
-                manager.getUpdateData().addBuffCount(p, "Invul");
+                updateData.updatePlayerMoney(p, cost, false);
+                updateData.addBuffCount(p, "Invul");
                 p.sendMessage(ChatColor.GREEN + "Покупка успешна!");
                 break;
             }
         }
+
+        Scoreboard.updateScoreboard(p); // в скорборде обновляем деньги
         manager.getInv().createShopInv(p);
     }
 
@@ -81,67 +87,22 @@ public class Buffs {
         slowValue = getBuffValue(p, "Slow");
         invulValue = getBuffValue(p, "Invul");
 
-        switch(item) { // Свитчим предмет и свитчим уровень предмета, от которого зависит цена, позже вынесу в файл (если не забуду)
+        switch(item) {
             case "Speed": {
-                switch (speedValue) {
-                    case 0:
-                        price = 1000;
-                        break;
-                    case 1:
-                        price = 2000;
-                        break;
-                    case 2:
-                        price = 5000;
-                        break;
-                    case 3:
-                        price = 10000;
-                        break;
-                    default:
-                        price = 15000;
-                        break;
-                }
+                if(speedValue >= 5) price = manager.getConfig().invulBuffCost.get(speedValue);
+                else price = manager.getConfig().speedBuffCost.get(speedValue+1);
+                break;
             }
-            break;
             case "Slow": {
-                switch (slowValue) {
-                    case 0:
-                        price = 2000;
-                        break;
-                    case 1:
-                        price = 4000;
-                        break;
-                    case 2:
-                        price = 8000;
-                        break;
-                    case 3:
-                        price = 15000;
-                        break;
-                    default:
-                        price = 20000;
-                        break;
-                }
+                if(slowValue >= 5) price = manager.getConfig().invulBuffCost.get(slowValue);
+                else price = manager.getConfig().slowBuffCost.get(slowValue+1);
+                break;
             }
-            break;
             case "Invul": {
-                switch (invulValue) {
-                    case 0:
-                        price = 3000;
-                        break;
-                    case 1:
-                        price = 6000;
-                        break;
-                    case 2:
-                        price = 15000;
-                        break;
-                    case 3:
-                        price = 20000;
-                        break;
-                    default:
-                        price = 30000;
-                        break;
-                }
+                if(invulValue >= 5) price = manager.getConfig().invulBuffCost.get(invulValue);
+                else price = manager.getConfig().invulBuffCost.get(invulValue+1);
+                break;
             }
-            break;
         }
         return price;
     }
@@ -150,14 +111,13 @@ public class Buffs {
         int buffValue = 5; // 5 по умолчанию, чтобы в случае ошибки оно считало, что у игрока максимальный уровень бафа и не давало купить новые
         try {
             PreparedStatement statement = Main.getInstance().getConnection().prepareStatement(
-                    "SELECT * FROM users WHERE UUID = ?" // Speed, Slow, Invul
+                    "SELECT * FROM users WHERE UUID = ?"
             );
             statement.setString(1, p.getUniqueId().toString());
             ResultSet result = statement.executeQuery();
             result.next();
-            buffValue = result.getInt(type); // получаем из БД колонку с названием type, записываем её в buffValue и возвращаем
-            statement.close();
-            result.close();
+            buffValue = result.getInt(type);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -174,8 +134,7 @@ public class Buffs {
             ResultSet result = statement.executeQuery();
             result.next();
             money = result.getInt("Money");
-            statement.close();
-            result.close();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
